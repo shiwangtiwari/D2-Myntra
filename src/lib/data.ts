@@ -1,5 +1,4 @@
-import fs from "fs";
-import path from "path";
+// Types only — no fs imports. Data is loaded via static JSON import in page.tsx.
 
 export interface ClassifiedItem {
   id: string;
@@ -11,6 +10,7 @@ export interface ClassifiedItem {
   score?: number;
   date?: string;
   subreddit?: string;
+  model_used?: string;
 }
 
 export interface ThemeSummary {
@@ -23,6 +23,8 @@ export interface PipelineMeta {
   total: number;
   relevant: number;
   irrelevant: number;
+  haikuClassified?: number;
+  sonnetUpgraded?: number;
   classifiedAt: string;
 }
 
@@ -33,7 +35,7 @@ export interface DashboardData {
   validationRate?: number;
 }
 
-const THEME_LABELS: Record<string, string> = {
+export const THEME_LABELS: Record<string, string> = {
   fit_size_uncertainty: "Fit & Size Uncertainty",
   style_occasion_doubt: "Style / Occasion Doubt",
   quality_authenticity_fear: "Quality & Authenticity Fear",
@@ -49,43 +51,4 @@ const THEME_LABELS: Record<string, string> = {
 
 export function getThemeLabel(theme: string): string {
   return THEME_LABELS[theme] || theme;
-}
-
-export function loadDashboardData(): DashboardData {
-  const dataPath = path.resolve(process.cwd(), "..", "data", "classified.json");
-
-  if (!fs.existsSync(dataPath)) {
-    return getMockData();
-  }
-
-  try {
-    const raw = fs.readFileSync(dataPath, "utf-8");
-    const parsed = JSON.parse(raw);
-
-    let validationRate: number | undefined;
-    const validationPath = path.resolve(process.cwd(), "..", "data", "validation_report.json");
-    if (fs.existsSync(validationPath)) {
-      const vRaw = fs.readFileSync(validationPath, "utf-8");
-      const vParsed = JSON.parse(vRaw);
-      validationRate = vParsed.agreementRate;
-    }
-
-    return { ...parsed, validationRate };
-  } catch (err) {
-    console.error("Failed to load classified.json:", err);
-    return getMockData();
-  }
-}
-
-function getMockData(): DashboardData {
-  return {
-    meta: {
-      total: 0,
-      relevant: 0,
-      irrelevant: 0,
-      classifiedAt: new Date().toISOString(),
-    },
-    summary: [],
-    items: [],
-  };
 }
