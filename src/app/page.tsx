@@ -1,266 +1,399 @@
 import { getThemeLabel, DashboardData } from "@/lib/data";
 import ThemeBarChart from "@/components/ThemeBarChart";
 import ItemExplorer from "@/components/ItemExplorer";
-import SourceBreakdown from "@/components/SourceBreakdown";
 
-// Static import — bundled at build time, no fs needed
 import classifiedRaw from "../../classified.json";
 
-const THEME_COLORS: Record<string, string> = {
-  fit_size_uncertainty:      "#4361EE",
-  style_occasion_doubt:      "#7209B7",
-  quality_authenticity_fear: "#F72585",
-  wishlist_as_bookmarking:   "#4CC9F0",
-  price_wait_behavior:       "#F3722C",
-  social_validation_need:    "#90BE6D",
-  comparison_paralysis:      "#F8961E",
-  return_policy_anxiety:     "#43AA8B",
-  missing_information:       "#577590",
-  habit_loop:                "#277DA1",
+// Myntra brand color per theme — color-blind safe
+export const THEME_COLORS: Record<string, string> = {
+  return_policy_anxiety:     "#0066CC",
+  quality_authenticity_fear: "#FF3F6C",
+  price_wait_behavior:       "#FF8C00",
+  missing_information:       "#6B4EFF",
+  comparison_paralysis:      "#00897B",
+  fit_size_uncertainty:      "#1565C0",
+  style_occasion_doubt:      "#AD1457",
+  wishlist_as_bookmarking:   "#558B2F",
+  social_validation_need:    "#E65100",
+  habit_loop:                "#37474F",
+};
+
+const SOURCE_MAP: Record<string, { label: string; color: string }> = {
+  playstore:         { label: "Play Store (English)",  color: "#34A853" },
+  reddit:            { label: "Play Store (Regional)", color: "#1565C0" },
+  youtube:           { label: "YouTube Comments",      color: "#FF3F6C" },
 };
 
 export default function Home() {
-  // Cast the imported JSON to our type
   const data = classifiedRaw as unknown as DashboardData;
-  const { meta, summary, items } = data;
+  const { meta, summary = [], items = [] } = data;
 
-  // Filter out irrelevant from summary
-  const relevantSummary = (summary || []).filter((s) => s.theme !== "irrelevant");
+  const relevantSummary = summary.filter(s => s.theme !== "irrelevant");
   const topTheme = relevantSummary[0];
+  const total = meta?.total || 0;
+  const relevant = meta?.relevant || 0;
+  const irrelevant = meta?.irrelevant || 0;
 
   const classifiedAt = meta?.classifiedAt
-    ? new Date(meta.classifiedAt).toLocaleDateString("en-IN", {
-        day: "numeric", month: "short", year: "numeric",
-      })
+    ? new Date(meta.classifiedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
     : "—";
 
   const sourceCounts: Record<string, number> = {};
-  for (const item of (items || [])) {
+  for (const item of items) {
     if (item.source) sourceCounts[item.source] = (sourceCounts[item.source] || 0) + 1;
   }
 
   return (
-    <main style={{ minHeight: "100vh", paddingBottom: 60 }}>
-      {/* Header */}
+    <main style={{ minHeight: "100vh", paddingBottom: 60, background: "var(--bg)" }}>
+
+      {/* ── MYNTRA HEADER ─────────────────────────────────────────────── */}
       <header style={{
-        background: "var(--white)",
-        borderBottom: "1px solid var(--border)",
-        padding: "16px 0",
+        background: "var(--myntra-pink)",
+        padding: "0",
         position: "sticky",
         top: 0,
         zIndex: 100,
+        boxShadow: "0 2px 8px rgba(255,63,108,0.3)",
       }}>
-        <div className="container" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div className="container" style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          height: 56,
+        }}>
+          {/* Myntra wordmark */}
           <div style={{
-            background: "var(--pink)",
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 15,
-            padding: "6px 14px",
-            borderRadius: "var(--radius-sm)",
-            letterSpacing: "0.04em",
+            color: "white",
+            fontWeight: 800,
+            fontSize: 22,
+            letterSpacing: "-0.02em",
+            fontStyle: "italic",
           }}>
-            D2
+            myntra
           </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>
-              Myntra Wishlist Behavior
-            </div>
-            <div style={{ fontSize: 13, color: "var(--ink-light)" }}>
-              AI Discovery Engine — Multi-source behavioral analysis
-            </div>
+          <div style={{
+            width: 1,
+            height: 24,
+            background: "rgba(255,255,255,0.3)",
+          }} />
+          <div style={{ color: "white", fontSize: 13, fontWeight: 500, opacity: 0.9 }}>
+            D2 — Wishlist Behavior Discovery Engine
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-            <span className="badge badge-pink">Live</span>
-            <span style={{ fontSize: 13, color: "var(--ink-light)" }}>
-              Updated {classifiedAt}
+            <span style={{
+              background: "rgba(255,255,255,0.2)",
+              color: "white",
+              padding: "3px 10px",
+              borderRadius: 20,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+            }}>LIVE</span>
+            <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>
+              {classifiedAt}
             </span>
           </div>
         </div>
       </header>
 
-      <div className="container" style={{ paddingTop: 32 }}>
-        {/* Hero stats */}
+      {/* ── PINK HERO BAND ────────────────────────────────────────────── */}
+      <div style={{
+        background: "linear-gradient(135deg, #FF3F6C 0%, #D4174A 100%)",
+        padding: "32px 0 40px",
+        marginBottom: -20,
+      }}>
+        <div className="container">
+          <div style={{ marginBottom: 8 }}>
+            <span style={{
+              background: "rgba(255,255,255,0.2)",
+              color: "white",
+              padding: "3px 10px",
+              borderRadius: 20,
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+            }}>
+              PART 1 OF 7 — AI DISCOVERY ENGINE
+            </span>
+          </div>
+          <h1 style={{
+            color: "white",
+            fontSize: 28,
+            fontWeight: 800,
+            marginBottom: 8,
+            letterSpacing: "-0.02em",
+          }}>
+            Why do Myntra users save but not buy?
+          </h1>
+          <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, maxWidth: 560 }}>
+            Multi-source AI analysis of 1,458 signals across Play Store reviews (English + 8 regional languages)
+            and YouTube comments — classified into 10 behavioral barrier themes.
+          </p>
+        </div>
+      </div>
+
+      <div className="container" style={{ paddingTop: 40 }}>
+
+        {/* ── STAT CARDS ──────────────────────────────────────────────── */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: 16,
-          marginBottom: 32,
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: 12,
+          marginBottom: 24,
         }}>
           {[
-            { n: (meta?.total || 0).toLocaleString("en-IN"), label: "Total signals collected" },
-            { n: (meta?.relevant || 0).toLocaleString("en-IN"), label: "Relevant to wishlist behavior" },
-            { n: `${relevantSummary.length}`, label: "Behavioral themes identified" },
-            { n: "52%", label: "Inter-coder agreement (Phase 1)", badge: "DISCLOSED" },
-          ].map((stat, i) => (
-            <div key={i} className="card" style={{ textAlign: "center" }}>
-              <div className="stat-number">{stat.n}</div>
-              <div className="stat-label">{stat.label}</div>
-              {stat.badge && (
-                <span className="badge badge-blue" style={{ marginTop: 8 }}>
-                  {stat.badge}
-                </span>
-              )}
+            { n: total.toLocaleString("en-IN"), label: "Total signals", sub: "Play Store + YouTube" },
+            { n: relevant.toLocaleString("en-IN"), label: "Relevant signals", sub: `${((relevant/total)*100||0).toFixed(1)}% of total` },
+            { n: "10", label: "Barrier themes", sub: "Adversarially audited" },
+            { n: "52%", label: "Inter-coder agreement", sub: "Disclosed — below 75% target", pink: false, warn: true },
+          ].map((s, i) => (
+            <div key={i} className="card" style={{ textAlign: "center", padding: "20px 16px" }}>
+              <div className="stat-number" style={{ color: s.warn ? "#FF8C00" : "var(--myntra-pink)" }}>
+                {s.n}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginTop: 4 }}>
+                {s.label}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                {s.sub}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Source coverage note */}
-        <div className="card" style={{
-          marginBottom: 32,
-          borderLeft: "4px solid #577590",
-          background: "#F5F7FA",
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#577590", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Source coverage — honest disclosure
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8, fontSize: 13, color: "var(--ink-mid)" }}>
-            {[
-              { src: "Play Store (English)", status: "✓", n: "1,181 items" },
-              { src: "Play Store (Regional — 8 languages)", status: "✓", n: "360 items" },
-              { src: "YouTube comments", status: "✓", n: "363 items (partially off-topic)" },
-              { src: "App Store", status: "✗", n: "iTunes RSS API deprecated 2024" },
-              { src: "Reddit", status: "✗", n: "API access removed 2023 (HTTP 403)" },
-              { src: "Fashion communities", status: "✗", n: "No public API available" },
-            ].map((s, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                <span style={{ color: s.status === "✓" ? "#065F46" : "#991B1B", fontWeight: 700 }}>{s.status}</span>
-                <span><strong>{s.src}</strong> — {s.n}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Key finding callout */}
+        {/* ── KEY FINDING BANNER ──────────────────────────────────────── */}
         {topTheme && (
           <div className="card" style={{
-            marginBottom: 32,
-            borderLeft: "4px solid var(--pink)",
-            background: "var(--pink-light)",
+            marginBottom: 20,
+            background: "var(--myntra-pink-light)",
+            border: "1.5px solid var(--myntra-pink)",
+            padding: "20px 24px",
           }}>
-            <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--pink-dark)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Engine finding (hypothesis — validated by primary research)
+                <div className="label" style={{ color: "var(--myntra-pink)", marginBottom: 6 }}>
+                  Engine finding — hypothesis
                 </div>
-                <h2 style={{ color: "var(--ink)", marginBottom: 8 }}>
-                  {getThemeLabel(topTheme.theme)} is the dominant signal
-                </h2>
-                <p style={{ color: "var(--ink-mid)", fontSize: 15 }}>
-                  {topTheme.pct}% of relevant signals ({topTheme.count} items) show{" "}
-                  <strong>{getThemeLabel(topTheme.theme).toLowerCase()}</strong> as the primary behavioral barrier.
-                  Primary research (N=48 survey) re-ranked this — timing barrier is the #1 stated reason at 37.5%.
-                  Engine finding treated as directional, not definitive.
-                </p>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "var(--myntra-charcoal)", marginBottom: 6 }}>
+                  {getThemeLabel(topTheme.theme)} ({topTheme.pct}%) is the dominant signal on Play Store
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  Primary research (N=48 survey) re-ranked this: <strong>timing barrier (#1, 37.5%)</strong> and{" "}
+                  <strong>comparison paralysis (#2, 17.5%)</strong> are the top stated reasons.
+                  Engine finding treated as directional — validated and re-ranked by primary research.
+                </div>
               </div>
               <div style={{
-                background: "var(--white)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--radius)",
-                padding: "16px 24px",
+                background: "var(--myntra-pink)",
+                borderRadius: 12,
+                padding: "20px 28px",
                 textAlign: "center",
-                minWidth: 120,
+                minWidth: 100,
+                flexShrink: 0,
               }}>
-                <div style={{ fontSize: 42, fontWeight: 700, color: "var(--pink)" }}>
+                <div style={{ fontSize: 36, fontWeight: 800, color: "white", lineHeight: 1 }}>
                   {topTheme.pct}%
                 </div>
-                <div style={{ fontSize: 12, color: "var(--ink-light)" }}>of signals</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginTop: 4 }}>
+                  of signals
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* No-discount constraint */}
-        <div className="card" style={{
-          marginBottom: 32,
-          borderLeft: "4px solid #F3722C",
-          background: "#FFF8F5",
-        }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#C04A10", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Hard constraint — acknowledged explicitly
-          </div>
-          <p style={{ color: "var(--ink-mid)", fontSize: 15 }}>
-            No monetary incentives. No discounts, price drop alerts, cashback, or coupons.
-            Any solution that relies on price as the lever is disqualified.
-            The engine finding that price-wait behavior appears at{" "}
-            {relevantSummary.find(s => s.theme === "price_wait_behavior")?.pct || "~10"}% of signals
-            captures non-monetary timing barriers (occasion, season, salary) — not discount-seeking.
-          </p>
-        </div>
+        {/* ── TWO COL: THEME CHART + SOURCE COVERAGE ──────────────────── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 16, marginBottom: 20 }}>
 
-        {/* Theme bar chart */}
-        <div className="card" style={{ marginBottom: 32 }}>
-          <h2 style={{ marginBottom: 6 }}>Theme frequency ranking</h2>
-          <p style={{ fontSize: 14, color: "var(--ink-light)", marginBottom: 24 }}>
-            {(meta?.relevant || 0).toLocaleString("en-IN")} relevant signals classified across 10 behavioral themes.
-            Treated as hypotheses — validated against primary research (N=48 survey, 6 depth respondents).
-          </p>
-          <ThemeBarChart summary={relevantSummary} colors={THEME_COLORS} />
-        </div>
-
-        {/* Two-col: source + validation */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 24,
-          marginBottom: 32,
-        }}>
+          {/* Theme chart */}
           <div className="card">
-            <h2 style={{ marginBottom: 16 }}>Source breakdown</h2>
-            <SourceBreakdown sourceCounts={sourceCounts} total={meta?.total || 0} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+              <div>
+                <div className="h2" style={{ marginBottom: 4 }}>Theme frequency ranking</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  {relevant} relevant signals · classified by primary behavioral barrier
+                </div>
+              </div>
+              <span className="badge badge-grey">AI classified</span>
+            </div>
+            <ThemeBarChart summary={relevantSummary} colors={THEME_COLORS} />
           </div>
 
-          <div className="card">
-            <h2 style={{ marginBottom: 16 }}>Validation methodology</h2>
-            <div style={{ fontSize: 14, color: "var(--ink-mid)", lineHeight: 1.8 }}>
-              <p style={{ marginBottom: 12 }}>
-                <strong>Tier 1 — Haiku:</strong> Classified all 1,458 items in batches of 20.
-              </p>
-              <p style={{ marginBottom: 12 }}>
-                <strong>Tier 2 — Sonnet:</strong> Re-classified low-confidence items independently.
-              </p>
-              <p style={{ marginBottom: 12 }}>
-                <strong>Blind validation:</strong> 100-item random sample re-classified. Agreement rate: 52%.
-                Below 75% target — acknowledged. Root cause: Play Store reviews are general app feedback,
-                not wishlist-specific behavioral signals.
-              </p>
-              <div style={{
-                background: "#F0FFF4",
-                border: "1px solid #A7F3D0",
-                borderRadius: "var(--radius-sm)",
-                padding: "10px 14px",
-                marginTop: 8,
-                fontSize: 13,
-                color: "#065F46",
-                fontWeight: 600,
-              }}>
-                No AI-generated percentage entered the deck.
-                Every stat cited is anchored to validated pipeline output or primary research (N=48).
+          {/* Source + validation */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* Source coverage */}
+            <div className="card" style={{ flex: 1 }}>
+              <div className="h3" style={{ marginBottom: 16 }}>Source coverage</div>
+              {[
+                { src: "Play Store (English)", n: sourceCounts["playstore"] || 0, status: true },
+                { src: "Play Store (Regional, 8 langs)", n: sourceCounts["reddit"] || 0, status: true },
+                { src: "YouTube comments", n: sourceCounts["youtube"] || 0, status: true, note: "partly off-topic" },
+                { src: "App Store", n: 0, status: false, note: "API deprecated 2024" },
+                { src: "Reddit", n: 0, status: false, note: "HTTP 403 since 2023" },
+                { src: "Fashion communities", n: 0, status: false, note: "No public API" },
+              ].map((s, i) => (
+                <div key={i} style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "8px 0",
+                  borderBottom: i < 5 ? "1px solid var(--border)" : "none",
+                }}>
+                  <span style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: s.status ? "#34A853" : "#94969F",
+                    width: 16,
+                    flexShrink: 0,
+                  }}>
+                    {s.status ? "✓" : "✗"}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: s.status ? "var(--text-primary)" : "var(--text-muted)" }}>
+                      {s.src}
+                    </div>
+                    {s.note && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{s.note}</div>}
+                  </div>
+                  {s.status && s.n > 0 && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--myntra-pink)" }}>
+                      {s.n.toLocaleString("en-IN")}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Constraint callout */}
+            <div className="card" style={{
+              background: "#FFF8F0",
+              border: "1.5px solid #FF8C00",
+              padding: "14px 16px",
+            }}>
+              <div className="label" style={{ color: "#E65100", marginBottom: 6 }}>
+                Hard constraint
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                No monetary incentives — no discounts, price alerts, cashback, or coupons.
+                Any solution relying on price is disqualified.
               </div>
             </div>
           </div>
         </div>
 
-        {/* Item explorer */}
-        <div className="card" style={{ marginBottom: 32 }}>
-          <h2 style={{ marginBottom: 6 }}>Signal explorer</h2>
-          <p style={{ fontSize: 14, color: "var(--ink-light)", marginBottom: 20 }}>
-            Browse classified signals by theme. Filter to see the raw evidence behind each finding.
-          </p>
-          <ItemExplorer items={items || []} summary={relevantSummary} colors={THEME_COLORS} />
+        {/* ── SURVEY VS ENGINE COMPARISON ─────────────────────────────── */}
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div className="h2" style={{ marginBottom: 4 }}>Engine vs primary research — verdict table</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 20 }}>
+            Engine findings tested against N=48 survey. Verdicts shown with delta.
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: "var(--myntra-grey-light)" }}>
+                  {["Engine finding", "Engine rank", "Survey finding", "Survey rank", "Verdict"].map(h => (
+                    <th key={h} style={{
+                      padding: "10px 12px",
+                      textAlign: "left",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "var(--text-muted)",
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      borderBottom: "2px solid var(--border)",
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {
+                    finding: "Return policy anxiety",
+                    engineRank: "#1 (52.7%)",
+                    survey: "Background fear — 82.5% say returns influence decisions",
+                    surveyRank: "Not #1 stated",
+                    verdict: "Re-ranked ↓",
+                    verdictColor: "#FF8C00",
+                  },
+                  {
+                    finding: "Quality / photo fear",
+                    engineRank: "#2 (24.5%)",
+                    survey: "Confirmed — 45% received wrong item, 80% worried",
+                    surveyRank: "#4 stated, #1 solution need",
+                    verdict: "Confirmed ✓",
+                    verdictColor: "#34A853",
+                  },
+                  {
+                    finding: "Price-wait behavior",
+                    engineRank: "#3 (9.9%)",
+                    survey: "Re-ranked to #1 stated barrier (37.5%) — it is TIMING not price",
+                    surveyRank: "#1 stated (37.5%)",
+                    verdict: "Re-ranked ↑",
+                    verdictColor: "#6B4EFF",
+                  },
+                  {
+                    finding: "Comparison paralysis",
+                    engineRank: "Weak (#5)",
+                    survey: "Emerged — 17.5% stated, 32.5% compare on other apps",
+                    surveyRank: "#2 stated (17.5%)",
+                    verdict: "Surfaced ↑",
+                    verdictColor: "#6B4EFF",
+                  },
+                ].map((row, i) => (
+                  <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td style={{ padding: "12px", fontWeight: 600, fontSize: 13 }}>{row.finding}</td>
+                    <td style={{ padding: "12px", color: "var(--text-secondary)" }}>{row.engineRank}</td>
+                    <td style={{ padding: "12px", color: "var(--text-secondary)", maxWidth: 240 }}>{row.survey}</td>
+                    <td style={{ padding: "12px", color: "var(--text-secondary)" }}>{row.surveyRank}</td>
+                    <td style={{ padding: "12px" }}>
+                      <span style={{
+                        background: row.verdictColor + "18",
+                        color: row.verdictColor,
+                        padding: "3px 8px",
+                        borderRadius: 4,
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}>{row.verdict}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{
+            marginTop: 16,
+            padding: "12px 16px",
+            background: "var(--myntra-grey-light)",
+            borderRadius: "var(--radius-sm)",
+            fontSize: 12,
+            color: "var(--text-secondary)",
+            fontWeight: 600,
+          }}>
+            No AI-generated percentage entered the deck. Every stat is anchored to validated pipeline output or primary research (N=48 survey).
+          </div>
         </div>
 
-        {/* Footer */}
+        {/* ── SIGNAL EXPLORER ─────────────────────────────────────────── */}
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div className="h2" style={{ marginBottom: 4 }}>Signal explorer</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 20 }}>
+            Browse classified signals by theme. Raw evidence behind each engine finding.
+          </div>
+          <ItemExplorer items={items} summary={relevantSummary} colors={THEME_COLORS} />
+        </div>
+
+        {/* ── FOOTER ──────────────────────────────────────────────────── */}
         <div style={{
           textAlign: "center",
-          fontSize: 13,
-          color: "var(--ink-light)",
-          padding: "24px 0",
+          fontSize: 12,
+          color: "var(--text-muted)",
+          padding: "20px 0",
           borderTop: "1px solid var(--border)",
         }}>
-          Myntra Wishlist-to-Purchase Conversion — D2 Discovery Engine &nbsp;|&nbsp;
-          {(meta?.total || 0).toLocaleString("en-IN")} signals from Play Store (English + 8 regional languages) + YouTube &nbsp;|&nbsp;
-          Validation: 52% inter-coder agreement (disclosed)
+          Myntra Wishlist-to-Purchase Conversion — D2 Discovery Engine &nbsp;·&nbsp;
+          {total.toLocaleString("en-IN")} signals from Play Store (English + 8 regional languages) + YouTube &nbsp;·&nbsp;
+          Inter-coder agreement: 52% (disclosed) &nbsp;·&nbsp;
+          Validated against primary research N=48
         </div>
       </div>
     </main>
