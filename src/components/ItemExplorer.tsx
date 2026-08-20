@@ -5,7 +5,7 @@ import { ClassifiedItem, ThemeSummary, getThemeLabel } from "@/lib/data";
 interface Props { items: ClassifiedItem[]; summary: ThemeSummary[]; colors: Record<string, string>; }
 
 const SRC: Record<string, string> = { playstore: "Play Store", reddit: "Regional", youtube: "YouTube" };
-const PAGE = 12;
+const PAGE = 10;
 
 export default function ItemExplorer({ items, summary, colors }: Props) {
   const [theme, setTheme] = useState("all");
@@ -19,16 +19,17 @@ export default function ItemExplorer({ items, summary, colors }: Props) {
 
   return (
     <div>
-      {/* Filter pills */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+      {/* Filter pills — horizontal scroll on mobile */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: 4 }}>
         <button onClick={() => { setTheme("all"); setPage(0); }}
-          className={`pill ${theme === "all" ? "active" : ""}`}>
+          className={`pill ${theme === "all" ? "active" : ""}`}
+          style={{ flexShrink: 0 }}>
           All ({items.filter(i => i.theme !== "irrelevant").length})
         </button>
         {summary.map(s => (
           <button key={s.theme} onClick={() => { setTheme(s.theme); setPage(0); }}
             style={{
-              padding: "5px 12px", borderRadius: 14, fontSize: 12, fontWeight: 600,
+              padding: "5px 12px", borderRadius: 14, fontSize: 12, fontWeight: 600, flexShrink: 0,
               border: `1px solid ${theme === s.theme ? colors[s.theme] || "#94969F" : "var(--border)"}`,
               background: theme === s.theme ? (colors[s.theme] || "#94969F") : "var(--surface)",
               color: theme === s.theme ? "white" : "var(--grey-dark)", cursor: "pointer",
@@ -46,7 +47,7 @@ export default function ItemExplorer({ items, summary, colors }: Props) {
           return (
             <div key={item.id} style={{
               border: "1px solid var(--border)", borderLeft: `3px solid ${color}`,
-              borderRadius: "var(--radius-xs)", padding: "10px 14px", background: "var(--surface)",
+              borderRadius: "var(--radius-xs)", padding: "10px 12px", background: "var(--surface)",
             }}>
               <div style={{ display: "flex", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
                 <span style={{ background: color + "15", color, padding: "1px 7px", borderRadius: "var(--radius-xs)", fontSize: 11, fontWeight: 700 }}>
@@ -55,18 +56,13 @@ export default function ItemExplorer({ items, summary, colors }: Props) {
                 <span style={{ background: "var(--bg)", color: "var(--grey-mid)", padding: "1px 7px", borderRadius: "var(--radius-xs)", fontSize: 11 }}>
                   {SRC[item.source] || item.source}
                 </span>
-                {item.confidence && (
-                  <span style={{ fontSize: 11, color: item.confidence === "high" ? "var(--success)" : item.confidence === "medium" ? "var(--warning)" : "var(--grey-mid)", fontWeight: 600 }}>
-                    {item.confidence}
-                  </span>
-                )}
               </div>
-              <p style={{ fontSize: 13, color: "var(--grey-dark)", lineHeight: 1.55, marginBottom: item.signal ? 4 : 0 }}>
-                {item.text?.slice(0, 280)}{(item.text?.length || 0) > 280 ? "..." : ""}
+              <p style={{ fontSize: 12, color: "var(--grey-dark)", lineHeight: 1.6, marginBottom: item.signal ? 4 : 0 }}>
+                {item.text?.slice(0, 240)}{(item.text?.length || 0) > 240 ? "..." : ""}
               </p>
               {item.signal && !["parse_error","api_error","not_found"].includes(item.signal) && (
                 <div style={{ fontSize: 11, color: "var(--grey-mid)" }}>
-                  Key signal: <em style={{ color: "var(--grey-dark)" }}>&ldquo;{item.signal}&rdquo;</em>
+                  Signal: <em style={{ color: "var(--grey-dark)" }}>&ldquo;{item.signal}&rdquo;</em>
                 </div>
               )}
             </div>
@@ -78,16 +74,19 @@ export default function ItemExplorer({ items, summary, colors }: Props) {
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16, alignItems: "center" }}>
           <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}
             style={{
-              padding: "7px 16px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 600,
-              border: "1px solid var(--border)", background: page === 0 ? "var(--bg)" : "var(--surface)",
+              padding: "7px 14px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 600,
+              border: "1px solid var(--border)",
+              background: page === 0 ? "var(--bg)" : "var(--surface)",
               color: page === 0 ? "var(--grey-mid)" : "var(--charcoal)", cursor: page === 0 ? "default" : "pointer",
             }}>← Prev</button>
           <span style={{ fontSize: 13, color: "var(--grey-mid)" }}>{page + 1} / {totalPages}</span>
           <button onClick={() => setPage(Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1}
             style={{
-              padding: "7px 16px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 600,
-              border: "1px solid var(--pink)", background: page >= totalPages - 1 ? "var(--bg)" : "var(--pink)",
-              color: page >= totalPages - 1 ? "var(--grey-mid)" : "white", cursor: page >= totalPages - 1 ? "default" : "pointer",
+              padding: "7px 14px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 600,
+              border: `1px solid var(--pink)`,
+              background: page >= totalPages - 1 ? "var(--bg)" : "var(--pink)",
+              color: page >= totalPages - 1 ? "var(--grey-mid)" : "white",
+              cursor: page >= totalPages - 1 ? "default" : "pointer",
             }}>Next →</button>
         </div>
       )}
